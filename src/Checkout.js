@@ -1,8 +1,7 @@
-import styles from "./Checkout.module.css";
-import { LoadingIcon } from "./Icons";
-import { getProducts } from "./dataService";
-import { useEffect, useMemo, useState } from "react";
-
+import styles from './Checkout.module.css';
+import { LoadingIcon } from './Icons';
+import { getProducts } from './dataService';
+import { useEffect, useMemo, useState } from 'react';
 
 const Product = ({
   id,
@@ -11,20 +10,20 @@ const Product = ({
   price,
   orderedQuantity,
   total,
+  updateQuantity,
 }) => {
-  const [number, setNumber] = useState(0);
   return (
     <tr>
       <td>{id}</td>
       <td>{name}</td>
       <td>{availableCount}</td>
       <td>${price}</td>
-      <td>{orderedQuantity || number}</td>
-      <td>${total || number * price}</td>
+      <td>{orderedQuantity}</td>
+      <td>${total}</td>
       <td>
         <button
           className={styles.actionButton}
-          onClick={() => setNumber(number + 1)}
+          onClick={() => updateQuantity(id, 'inc')}
           disabled={number > availableCount + -1}
         >
           +
@@ -32,7 +31,7 @@ const Product = ({
         <button
           className={styles.actionButton}
           disabled={number === 0}
-          onClick={() => setNumber(number - 1)}
+          onClick={() => updateQuantity(id, 'desc')}
         >
           -
         </button>
@@ -58,6 +57,24 @@ const Checkout = () => {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  const total = useMemo(() => {
+    return products.reduce((acc, cur) => {
+      return acc + cur.total;
+    }, 0);
+  }, [products]);
+
+  const updateQuantity = (id, type) => {
+    const newProducts = [...products];
+    const product = newProducts.find((p) => p.id === id);
+    if (type === 'add') {
+      product.orderedQuantity++;
+    } else {
+      product.orderedQuantity--;
+    }
+    product.total = product.orderedQuantity * product.price;
+    setProducts(newProducts);
+  };
   return (
     <div>
       <header className={styles.header}>
@@ -80,13 +97,17 @@ const Checkout = () => {
           </thead>
           <tbody>
             {products.map((product, index) => (
-              <Product key={`products-${index}`} {...product} />
+              <Product
+                key={`products-${index}`}
+                {...product}
+                updateQuantity={updateQuantity}
+              />
             ))}
           </tbody>
         </table>
         <h2>Order summary</h2>
         <p>Discount: $ </p>
-        <p>Total: $ </p>
+        <p>Total: $ {total}</p>
       </main>
     </div>
   );
