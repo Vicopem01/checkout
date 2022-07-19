@@ -46,8 +46,13 @@ const Checkout = () => {
   const fetchProducts = async () => {
     try {
       const response = await getProducts();
-      console.log(response);
-      setProducts(response);
+      const products = response.map((item) => {
+        return {
+          ...item,
+          orderedQuantity: 0,
+        };
+      });
+      setProducts(products);
       setLoading(false);
     } catch (error) {
       setLoading(false);
